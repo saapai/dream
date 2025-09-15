@@ -1,3 +1,3 @@
 # AI Dreamer
 
-Goal: Create a modern portfolio website for a software engineer with dark theme, project showcase, and contact form
+Goal: Create a personal portfolio website for a software engineer with project showcase and contact form
