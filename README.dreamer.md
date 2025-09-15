@@ -1,3 +1,3 @@
 # AI Dreamer
 
-Goal: Create a beautiful UCLA club landing page with events and newsletter signup
+Goal: Create a modern portfolio website for a software engineer with dark theme, project showcase, and contact form
