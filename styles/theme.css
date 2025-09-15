@@ -1,10 +1,10 @@
 :root{
-  --bg: #ffffff;
-  --fg: #102a43;
-  --muted: #6b7280;
-  --primary: #2774AE;
-  --accent: #FFD100;
-  --radius: 10px;
+  --bg: #0f0f23;
+  --fg: #ffffff;
+  --muted: #a0a0a0;
+  --primary: #00d9ff;
+  --accent: #ff6b6b;
+  --radius: 12px;
 }
 html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
 .container{max-width:960px;margin:40px auto;padding:0 16px}
