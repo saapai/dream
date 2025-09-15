@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Dreamer - Your AI Product Engineer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.5);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(156, 163, 175, 0.7);
+        }
+        
+        /* Glassmorphism effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        /* Smooth animations */
+        .message-slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Loading dots animation */
+        @keyframes pulse {
+            0%, 20% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 0.7;
+            }
+            80%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .loading-dot {
+            animation: pulse 1.5s infinite;
+        }
+        
+        .loading-dot:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+        
+        .loading-dot:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
+    <!-- Header -->
+    <div class="bg-white/80 backdrop-blur-sm border-b border-gray-200 px-6 py-4">
+        <div class="flex items-center justify-between max-w-4xl mx-auto">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
+                    <i data-lucide="sparkles" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-semibold text-gray-900">AI Dreamer</h1>
+                    <p class="text-sm text-gray-600">Your AI Product Engineer</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages Container -->
+    <div id="messages" class="flex-1 overflow-y-auto px-6 py-6 max-h-[calc(100vh-140px)]">
+        <div class="max-w-4xl mx-auto">
+            <!-- Welcome Message -->
+            <div class="flex justify-start mb-6">
+                <div class="flex max-w-[80%] flex-row">
+                    <div class="flex-shrink-0 mr-3">
+                        <div class="w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
+                            <i data-lucide="sparkles" class="w-4 h-4 text-white"></i>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-start">
+                        <div class="px-4 py-3 rounded-2xl bg-gray-100 text-gray-900">
+                            <div class="whitespace-pre-wrap">Welcome to AI Dreamer! 🚀
+
+I'm your AI product engineer. Describe any website you'd like to build, and I'll create it from scratch and deploy it live for you.
+
+Try something like:
+• "Create a portfolio website for a software engineer"
+• "Build a landing page for my startup with dark theme"
+• "Make a restaurant website with menu and reservations"</div>
+                        </div>
+                        <span class="text-xs text-gray-500 mt-1" id="welcome-time"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Input -->
+    <div class="bg-white/80 backdrop-blur-sm border-t border-gray-200 px-6 py-4">
+        <form id="chat-form" class="max-w-4xl mx-auto">
+            <div class="flex items-end space-x-4">
+                <div class="flex-1">
+                    <textarea
+                        id="message-input"
+                        placeholder="Describe the website you want to build..."
+                        class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none min-h-[44px] max-h-32"
+                        rows="1"
+                        disabled
+                    ></textarea>
+                </div>
+                <button
+                    type="submit"
+                    id="send-button"
+                    class="bg-blue-500 text-white p-3 rounded-2xl hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    disabled
+                >
+                    <i data-lucide="send" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Set welcome message time
+        document.getElementById('welcome-time').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        const messagesContainer = document.getElementById('messages');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const chatForm = document.getElementById('chat-form');
+        let isLoading = false;
+        
+        // Enable input after page load
+        window.addEventListener('load', () => {
+            messageInput.disabled = false;
+            sendButton.disabled = false;
+        });
+        
+        function scrollToBottom() {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        function formatTime(date) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        
+        function addMessage(type, content, jobId = null, status = null, links = null) {
+            const messageId = Date.now().toString();
+            const isUser = type === 'user';
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex ${isUser ? 'justify-end' : 'justify-start'} mb-6 message-slide-in`;
+            messageDiv.id = `message-${messageId}`;
+            
+            messageDiv.innerHTML = `
+                <div class="flex max-w-[80%] ${isUser ? 'flex-row-reverse' : 'flex-row'}">
+                    <div class="flex-shrink-0 ${isUser ? 'ml-3' : 'mr-3'}">
+                        ${isUser ? 
+                            '<div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-medium">U</div>' :
+                            '<div class="w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center"><i data-lucide="sparkles" class="w-4 h-4 text-white"></i></div>'
+                        }
+                    </div>
+                    <div class="flex flex-col ${isUser ? 'items-end' : 'items-start'}">
+                        <div class="px-4 py-3 rounded-2xl ${
+                            isUser ? 'bg-blue-500 text-white' :
+                            type === 'progress' ? 'bg-amber-50 border border-amber-200 text-amber-900' :
+                            status === 'error' ? 'bg-red-50 border border-red-200 text-red-900' :
+                            'bg-gray-100 text-gray-900'
+                        }">
+                            ${type === 'progress' ? `
+                                <div class="flex items-center mb-2">
+                                    ${status === 'running' ? '<i data-lucide="clock" class="w-4 h-4 mr-2 animate-spin"></i>' : ''}
+                                    ${status === 'completed' ? '<i data-lucide="check-circle" class="w-4 h-4 mr-2 text-green-600"></i>' : ''}
+                                    ${status === 'error' ? '<i data-lucide="alert-circle" class="w-4 h-4 mr-2 text-red-600"></i>' : ''}
+                                    <span class="text-sm font-medium">
+                                        ${status === 'running' ? 'In Progress' : ''}
+                                        ${status === 'completed' ? 'Completed' : ''}
+                                        ${status === 'error' ? 'Failed' : ''}
+                                    </span>
+                                </div>
+                            ` : ''}
+                            <div class="whitespace-pre-wrap">${content}</div>
+                            ${links ? `
+                                <div class="flex flex-wrap gap-2 mt-4">
+                                    ${links.vercel ? `<a href="${links.vercel}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-3 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors text-sm">
+                                        <i data-lucide="external-link" class="w-4 h-4 mr-2"></i>
+                                        Live Website
+                                    </a>` : ''}
+                                    ${links.github ? `<a href="${links.github}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-3 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm">
+                                        <i data-lucide="github" class="w-4 h-4 mr-2"></i>
+                                        Source Code
+                                    </a>` : ''}
+                                    ${links.figma ? `<a href="${links.figma}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">
+                                        <i data-lucide="figma" class="w-4 h-4 mr-2"></i>
+                                        Design
+                                    </a>` : ''}
+                                </div>
+                            ` : ''}
+                        </div>
+                        <span class="text-xs text-gray-500 mt-1">${formatTime(new Date())}</span>
+                    </div>
+                </div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            lucide.createIcons();
+            scrollToBottom();
+            return messageId;
+        }
+        
+        function updateMessage(messageId, content, status = null) {
+            const messageDiv = document.getElementById(`message-${messageId}`);
+            if (messageDiv) {
+                const contentDiv = messageDiv.querySelector('.whitespace-pre-wrap');
+                if (contentDiv) {
+                    contentDiv.textContent = content;
+                }
+                
+                if (status) {
+                    const statusDiv = messageDiv.querySelector('.flex.items-center.mb-2');
+                    if (statusDiv) {
+                        const statusText = statusDiv.querySelector('.text-sm.font-medium');
+                        if (statusText) {
+                            statusText.textContent = status === 'running' ? 'In Progress' : status === 'completed' ? 'Completed' : 'Failed';
+                        }
+                    }
+                }
+            }
+        }
+        
+        function simulateProgress(jobId) {
+            const progressSteps = [
+                '📋 Planning project architecture...',
+                '🎨 Analyzing design requirements...',
+                '⚙️ Generating UI components...',
+                '🔧 Setting up deployment pipeline...',
+                '🚀 Deploying to production...',
+                '✅ Project completed successfully!'
+            ];
+            
+            let stepIndex = 0;
+            const progressMessageId = addMessage('progress', '🚀 **Creating your website...**\n\nInitializing project...', jobId, 'running');
+            
+            const updateProgress = () => {
+                if (stepIndex < progressSteps.length) {
+                    const content = `🚀 **Creating your website...**\n\n${progressSteps.slice(0, stepIndex + 1).join('\n')}`;
+                    updateMessage(progressMessageId, content);
+                    stepIndex++;
+                    setTimeout(updateProgress, 2000);
+                } else {
+                    // Show completion
+                    addMessage('assistant', `✨ **Project Complete!** ✨\n\nYour website has been successfully created and deployed. Here are your links:`, null, 'completed', {
+                        github: 'https://github.com/saapai/dream',
+                        vercel: 'https://dream-dream.vercel.app',
+                        figma: 'https://figma.com/design/example'
+                    });
+                    isLoading = false;
+                    messageInput.disabled = false;
+                    sendButton.disabled = false;
+                    messageInput.focus();
+                }
+            };
+            
+            setTimeout(updateProgress, 1000);
+        }
+        
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const input = messageInput.value.trim();
+            if (!input || isLoading) return;
+            
+            // Add user message
+            addMessage('user', input);
+            
+            // Clear input and disable
+            messageInput.value = '';
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+            isLoading = true;
+            
+            // Simulate AI Dreamer experience
+            const jobId = `job_${Date.now()}`;
+            simulateProgress(jobId);
+        });
+        
+        // Auto-resize textarea
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 128) + 'px';
+        });
+        
+        // Handle Enter key
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                chatForm.dispatchEvent(new Event('submit'));
+            }
+        });
+    </script>
+</body>
+</html>
