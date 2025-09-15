@@ -1,3 +1,3 @@
 # AI Dreamer
 
-Goal: Create a simple landing page for a UCLA club with events and email signup
+Goal: Create a beautiful UCLA club landing page with events and newsletter signup
